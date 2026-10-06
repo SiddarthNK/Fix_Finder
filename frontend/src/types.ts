@@ -37,7 +37,7 @@ export interface LikelyCause {
 
 export interface DiagnosisOutput {
   likely_causes: LikelyCause[];
-  reasoning: str;
+  reasoning: string;
   disagreement?: string | null;
   missing_info: string[];
   plain_summary: string;
