@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    background-color: #0E0E0E;
+    color: #FFFFFF;
+    font-family: 'Outfit', sans-serif;
+  }
+}
+
+/* Custom scrollbar for dark bento style */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0E0E0E;
+}
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #FF6A2B;
+}
+
+/* Glass & soft shadow utilities */
+.bento-card {
+  background-color: #212121;
+  border-radius: 36px;
+  box-shadow: 0 16px 40px -8px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.bento-card-tier2 {
+  background-color: #262626;
+  border-radius: 20px;
+  box-shadow: inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+}
+
+.pill-button {
+  background-color: #F2F2F2;
+  color: #1A1A1A;
+  border-radius: 9999px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.pill-button:hover {
+  background-color: #FFFFFF;
+  transform: translateY(-1px);
+}

@@ -1,0 +1,16 @@
+{
+  "name": "fixfinder-maintenance-agent",
+  "version": "1.0.0",
+  "description": "FixFinder - Autonomous AI Maintenance Complaint Diagnosis & Triage Agent",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "vite"
+  },
+  "devDependencies": {
+    "vite": "^5.4.8"
+  }
+}

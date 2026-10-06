@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FixFinder | Autonomous Maintenance Diagnosis & Triage Agent</title>
+  <meta name="description" content="AI agent for instant maintenance complaint diagnosis, citations, cost estimation, urgency triage, and technician feedback loops.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div>
+        <div class="brand">
+          <div class="brand-icon">⚡</div>
+          <div>
+            <div class="brand-title">FixFinder</div>
+            <div class="brand-subtitle">Autonomous AI Agent</div>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <div class="nav-item active" data-screen="screen-new-complaint">
+            <span class="nav-icon">🔍</span>
+            <span>New Complaint</span>
+          </div>
+          <div class="nav-item" data-screen="screen-triage-queue">
+            <span class="nav-icon">⚡</span>
+            <span>Triage Queue</span>
+          </div>
+          <div class="nav-item" data-screen="screen-case-library">
+            <span class="nav-icon">📚</span>
+            <span>Case Library</span>
+          </div>
+          <div class="nav-item" data-screen="screen-recurring-issues">
+            <span class="nav-icon">📊</span>
+            <span>Recurring Issues</span>
+          </div>
+          <div class="nav-item" data-screen="screen-activity-log">
+            <span class="nav-icon">📋</span>
+            <span>Activity Log</span>
+          </div>
+        </nav>
+      </div>
+
+      <div class="sidebar-bottom">
+        <div class="library-ticker">
+          <div>
+            <div style="font-size: 11px; color: var(--text-muted);">Historical Database</div>
+            <div style="font-size: 12px; font-weight: 600;">Active Knowledge Cases</div>
+          </div>
+          <div class="ticker-count" id="active-case-count">48</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Viewport -->
+    <main class="main-viewport">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="page-header">
+          <h1 id="screen-title">Diagnose a Complaint</h1>
+          <p id="screen-subtitle">Intake free-text building complaints, match historical precedents & generate actionable repairs.</p>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-secondary btn-sm" id="reset-db-btn">
+            <span>🔄 Reset Data</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Demo Guided Walkthrough Banner -->
+      <div class="demo-banner">
+        <div class="demo-title">
+          <span>🎬 Interactive Demo Walkthrough:</span>
+        </div>
+        <div class="demo-chips">
+          <button class="demo-chip-btn" id="demo-step-1">
+            <span>1️⃣ Demo AC Leak</span>
+          </button>
+          <button class="demo-chip-btn" id="demo-step-2">
+            <span>2️⃣ Demo AC Warm Air</span>
+          </button>
+          <button class="demo-chip-btn" id="demo-step-3">
+            <span>3️⃣ Demo Fridge Noise (Refusal)</span>
+          </button>
+          <button class="demo-chip-btn" id="demo-step-4">
+            <span>4️⃣ Demo Feedback & Re-diagnosis</span>
+          </button>
+          <button class="demo-chip-btn" id="demo-step-5">
+            <span>5️⃣ Demo Triage Queue</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- SCREEN 1: NEW COMPLAINT (MAIN SCREEN) -->
+      <section id="screen-new-complaint" class="screen-view active">
+        <div class="grid-2col">
+          <!-- Left Column: Input Form & Quick Chips -->
+          <div>
+            <div class="card">
+              <h2 class="card-title">
+                <span>📝 Complaint Intake</span>
+              </h2>
+
+              <div class="form-group">
+                <label class="form-label" for="input-building">Target Building</label>
+                <select id="input-building" class="form-select">
+                  <option value="All">All Buildings (A - D)</option>
+                  <option value="Building A">Building A (Commercial Offices)</option>
+                  <option value="Building B">Building B (Dining & Kitchens)</option>
+                  <option value="Building C">Building C (Laboratories & Medical)</option>
+                  <option value="Building D">Building D (Facilities & Logistics)</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="input-complaint-text">Describe Maintenance Issue</label>
+                <textarea id="input-complaint-text" class="form-textarea" placeholder="Type free-text complaint (e.g. AC leaking, breaker tripping, pipe backing up...)"></textarea>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Tap Sample Complaints</label>
+                <div class="sample-chips-wrapper">
+                  <div class="sample-chip" data-text="AC in room 204 is leaking water from casing and making loud rattling noises.">
+                    <span>❄️ Room 204 AC leaking water & rattling</span>
+                  </div>
+                  <div class="sample-chip" data-text="AC not cooling well in 3rd floor open office space, warm air blowing from vents.">
+                    <span>🌡️ AC not cooling well in 3rd floor open office</span>
+                  </div>
+                  <div class="sample-chip" data-text="Cafeteria fridge compressor making grinding noise and food cabinet temperature rising.">
+                    <span>🧊 Cafeteria fridge compressor making grinding noise</span>
+                  </div>
+                  <div class="sample-chip" data-text="Breaker tripping repeatedly in server rack B after installing new UPS power strip.">
+                    <span>⚡ Server rack B breaker tripping repeatedly</span>
+                  </div>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 12px;">
+                <button id="diagnose-btn" class="btn btn-primary btn-full">
+                  <span>✨ Run Agent Diagnosis</span>
+                </button>
+                <button id="clear-btn" class="btn btn-secondary btn-sm">
+                  <span>Clear</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Agent Stepper & Diagnosis Output -->
+          <div>
+            <!-- Agent Stepper Card -->
+            <div class="card stepper-card">
+              <div class="card-title" style="justify-content: space-between;">
+                <span>🤖 Agentic Pipeline Tracker</span>
+                <span id="pipeline-status-tag" style="font-size: 12px; color: var(--text-muted); font-weight: 500;">Ready</span>
+              </div>
+              
+              <div class="stepper">
+                <div class="step-item" id="step-1">
+                  <div class="step-circle">1</div>
+                  <div class="step-label">Intake</div>
+                </div>
+                <div class="step-item" id="step-2">
+                  <div class="step-circle">2</div>
+                  <div class="step-label">Retrieval</div>
+                </div>
+                <div class="step-item" id="step-3">
+                  <div class="step-circle">3</div>
+                  <div class="step-label">Diagnosis</div>
+                </div>
+                <div class="step-item" id="step-4">
+                  <div class="step-circle">4</div>
+                  <div class="step-label">Recommend</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Initial Idle Placeholder Card -->
+            <div id="result-idle-state" class="card" style="text-align: center; padding: 48px 24px;">
+              <div style="font-size: 48px; margin-bottom: 12px;">🎯</div>
+              <h3 style="font-size: 18px; margin-bottom: 8px;">Waiting for Complaint Input</h3>
+              <p style="font-size: 13px; color: var(--text-muted); max-width: 400px; margin: 0 auto;">Select a building and type a complaint or click a sample chip above to trigger the 4-stage FixFinder agent reasoning pipeline.</p>
+            </div>
+
+            <!-- Diagnosis Result Display Container -->
+            <div id="result-active-container" style="display: none;">
+              
+              <!-- Diagnosis Card -->
+              <div class="card" style="margin-bottom: 24px;" id="diagnosis-card">
+                <div class="card-title" style="justify-content: space-between;">
+                  <span>🧠 Primary Diagnosis & Ranked Causes</span>
+                  <span id="detected-equipment-tag" class="badge-tech">HVAC</span>
+                </div>
+
+                <div id="ranked-causes-container">
+                  <!-- Dynamic ranked causes inserted by JS -->
+                </div>
+
+                <!-- Disagreement Warning Alert -->
+                <div id="disagreement-warning-banner" class="disagreement-banner" style="display: none;">
+                  <span>⚠️</span>
+                  <span id="disagreement-warning-text">Disagreement detected</span>
+                </div>
+
+                <!-- Plain Language Manager Summary -->
+                <div class="manager-summary-box">
+                  <div style="font-weight: 700; font-size: 11px; text-transform: uppercase; color: var(--primary); margin-bottom: 4px;">Manager Summary</div>
+                  <div id="manager-summary-text">...</div>
+                </div>
+              </div>
+
+              <!-- Recommended Action Card -->
+              <div class="card" style="margin-bottom: 24px;" id="recommendation-card">
+                <div class="card-title">
+                  <span>🛠️ Recommended Repair & Cost Estimate</span>
+                </div>
+
+                <div class="kpi-row">
+                  <div class="kpi-card">
+                    <div class="kpi-value" id="kpi-cost">$180</div>
+                    <div class="kpi-label">Median Cost (<span id="kpi-cost-range">$140-$220</span>)</div>
+                  </div>
+                  <div class="kpi-card">
+                    <div class="kpi-value" id="kpi-time">1.5 hrs</div>
+                    <div class="kpi-label">Est. Time (<span id="kpi-time-range">1-2 hrs</span>)</div>
+                  </div>
+                  <div class="kpi-card">
+                    <div class="kpi-value">
+                      <span id="kpi-urgency-badge" class="urgency-badge urgency-P2">P2</span>
+                    </div>
+                    <div class="kpi-label">Urgency Priority</div>
+                  </div>
+                </div>
+
+                <div style="font-size: 13px; font-weight: 600; margin-bottom: 8px;">Actionable Fix Steps (Derived from Cases):</div>
+                <div id="fix-steps-container" class="fix-steps-list">
+                  <!-- Steps injected by JS -->
+                </div>
+
+                <div style="margin-top: 12px; font-size: 12px; color: var(--text-muted);">
+                  <strong>Urgency Rationale:</strong> <span id="urgency-reason-text">...</span>
+                </div>
+
+                <!-- Technician Feedback Loop Section -->
+                <div class="feedback-box">
+                  <div style="font-size: 13px; font-weight: 600; color: #fff;">Technician Feedback Loop: Was this diagnosis accurate?</div>
+                  <div class="feedback-buttons">
+                    <button class="btn btn-secondary btn-sm" id="feedback-confirm-btn" style="border-color: #10b981; color: #34d399;">
+                      <span>✔️ Yes, Confirm & Save</span>
+                    </button>
+                    <button class="btn btn-secondary btn-sm" id="feedback-reject-btn" style="border-color: #ef4444; color: #f87171;">
+                      <span>❌ No, Enter Real Cause</span>
+                    </button>
+                  </div>
+                  <div id="feedback-success-msg" style="display: none; color: #34d399; font-size: 12px; font-weight: 600;">
+                    ✅ Case confirmed and updated in active database!
+                  </div>
+                </div>
+              </div>
+
+              <!-- Refusal State Container ("No Strong Precedent") -->
+              <div id="refusal-card" class="card no-precedent-card" style="display: none; margin-bottom: 24px;">
+                <div class="no-precedent-icon">⚠️</div>
+                <h3 style="font-size: 18px; margin-bottom: 8px; color: #fbbf24;">No Strong Precedent Found</h3>
+                <p id="refusal-reason-text" style="font-size: 13.5px; color: var(--text-muted); max-width: 500px; margin: 0 auto 16px auto;">
+                  The similarity score for this complaint fell below the minimum 30% confidence threshold.
+                </p>
+                <div style="background: rgba(0, 0, 0, 0.3); padding: 12px; border-radius: var(--radius-sm); max-width: 450px; margin: 0 auto 16px auto; font-size: 13px;" id="refusal-manager-summary">
+                  ...
+                </div>
+                <button class="btn btn-primary btn-sm" id="refusal-add-case-btn">
+                  <span>➕ Log Real Cause for Learning Library</span>
+                </button>
+              </div>
+
+              <!-- Similar Cases Matched Table -->
+              <div class="card" id="similar-cases-card">
+                <div class="card-title">
+                  <span>📚 Matched Precedent Cases</span>
+                </div>
+                <div class="table-wrapper">
+                  <table class="custom-table">
+                    <thead>
+                      <tr>
+                        <th>Case ID</th>
+                        <th>Equipment</th>
+                        <th>Diagnosed Cause</th>
+                        <th>Score</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="similar-cases-tbody">
+                      <!-- Rows injected by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 2: TRIAGE QUEUE -->
+      <section id="screen-triage-queue" class="screen-view">
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div>
+              <h2 class="card-title" style="margin-bottom: 4px;">⚡ Automated Complaint Triage Queue</h2>
+              <p style="font-size: 13px; color: var(--text-muted);">Incoming complaints automatically sorted by calculated urgency (P1 Critical top) and risk factors.</p>
+            </div>
+            <button class="btn btn-primary" id="load-triage-samples-btn">
+              <span>⚡ Load 3 Sample Complaints</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Urgency</th>
+                  <th>Building</th>
+                  <th>Complaint Description</th>
+                  <th>Detected Equipment</th>
+                  <th>Agent Cause Match</th>
+                  <th>Est. Cost</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="triage-queue-tbody">
+                <!-- Triage rows injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 3: CASE LIBRARY -->
+      <section id="screen-case-library" class="screen-view">
+        <div class="card" style="margin-bottom: 20px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;">
+            <div style="flex: 1; min-width: 280px;">
+              <input type="text" id="library-search-input" class="form-input" placeholder="🔍 Search library by cause, equipment, building or complaint keyword...">
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="equipment-filter-pills">
+              <button class="btn btn-secondary btn-sm active-pill" data-equip="All">All</button>
+              <button class="btn btn-secondary btn-sm" data-equip="HVAC">HVAC</button>
+              <button class="btn btn-secondary btn-sm" data-equip="Plumbing">Plumbing</button>
+              <button class="btn btn-secondary btn-sm" data-equip="Electrical">Electrical</button>
+              <button class="btn btn-secondary btn-sm" data-equip="Elevator">Elevator</button>
+              <button class="btn btn-secondary btn-sm" data-equip="Refrigeration">Refrigeration</button>
+              <button class="btn btn-secondary btn-sm" data-equip="Security">Security</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Case ID</th>
+                  <th>Building</th>
+                  <th>Equipment</th>
+                  <th>Complaint Overview</th>
+                  <th>Root Cause</th>
+                  <th>Cost</th>
+                  <th>Urgency</th>
+                  <th>Tag</th>
+                </tr>
+              </thead>
+              <tbody id="case-library-tbody">
+                <!-- Case rows injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 4: RECURRING ISSUES (ANALYTICS & PATTERNS) -->
+      <section id="screen-recurring-issues" class="screen-view">
+        <div class="card" style="margin-bottom: 24px;">
+          <h2 class="card-title">🚨 Auto-Detected Fault Patterns (3+ Recurrences)</h2>
+          <div id="pattern-alerts-container">
+            <!-- Pattern alert cards injected by JS -->
+          </div>
+        </div>
+
+        <div class="chart-grid">
+          <div class="card">
+            <h3 class="card-title">🏢 Complaints Distribution by Building</h3>
+            <div class="chart-container" id="chart-building">
+              <!-- Bar chart injected by JS -->
+            </div>
+          </div>
+
+          <div class="card">
+            <h3 class="card-title">⚙️ Complaints Distribution by Equipment Category</h3>
+            <div class="chart-container" id="chart-equipment">
+              <!-- Bar chart injected by JS -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SCREEN 5: ACTIVITY LOG -->
+      <section id="screen-activity-log" class="screen-view">
+        <div class="card">
+          <h2 class="card-title">📋 Diagnostic Activity & Feedback Log</h2>
+          <div class="table-wrapper">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>Log ID</th>
+                  <th>Timestamp</th>
+                  <th>Building</th>
+                  <th>Complaint</th>
+                  <th>Diagnosed Cause</th>
+                  <th>Match Score</th>
+                  <th>Urgency</th>
+                  <th>Feedback Status</th>
+                </tr>
+              </thead>
+              <tbody id="activity-log-tbody">
+                <!-- Log rows injected by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODAL FORM: Technician Reject & Add Real Cause -->
+  <div class="modal-overlay" id="feedback-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 style="color: #fff; font-size: 18px;">➕ Log Real Cause into FixFinder Library</h3>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <form id="feedback-form">
+        <div class="form-group">
+          <label class="form-label">Original Complaint</label>
+          <input type="text" id="modal-complaint-display" class="form-input" readonly style="background: rgba(255, 255, 255, 0.04);">
+        </div>
+        <div class="form-group">
+          <label class="form-label">True Diagnosed Cause *</label>
+          <input type="text" id="modal-real-cause" class="form-input" placeholder="e.g. Worn compressor piston bearings & evaporator fan ice" required>
+        </div>
+        <div class="form-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+          <div class="form-group">
+            <label class="form-label">Estimated Repair Cost ($) *</label>
+            <input type="number" id="modal-cost" class="form-input" value="350" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Estimated Time (Hours) *</label>
+            <input type="number" step="0.5" id="modal-time" class="form-input" value="2.5" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Recommended Fix Steps (1 per line)</label>
+          <textarea id="modal-fix-steps" class="form-textarea" rows="3" placeholder="Step 1...&#10;Step 2..."></textarea>
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 20px;">
+          <button type="button" class="btn btn-secondary" id="modal-cancel-btn">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save to Library & Re-Diagnose</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
